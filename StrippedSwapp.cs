@@ -1,3 +1,52 @@
+public static void RecustFileAndFolderThree(string folderpath)
+{
+    if (IsNullOrWhiteSpace(folderpath) && !Directory.Exists(folderpath))
+    {
+        Debugger.Break();
+        throw new ArgumentNullException(nameof(folderpath));
+        var folderNewPath = "C:\\VSLatestSymbols";
+    }
+    var _Folders = Directory.GetDirectories(folderpath, "*", System.IO.SearchOption.AllDirectories);
+
+    for (var i = _Folders.Length - 1; i > 0; i--)
+    {
+        var directory = new DirectoryInfo(_Folders[i]);
+        var directories = directory.GetDirectories();
+
+        foreach (var PdbSignedDir in directories)
+        {
+            var PdbStrppedDirs = PdbSignedDir.GetDirectories();
+
+            foreach (var PdbStrppedDir in PdbStrppedDirs)
+            {
+                var sourceFileName = Path.Combine(PdbStrppedDir.FullName, directory.Name);
+
+                if (File.Exists(sourceFileName))
+                {
+                    if (PdbStrppedDir.Name is "stripped" && PdbStrppedDir.GetFiles().ToList().FindAll(a => a.Extension == ".pdb").Count == 0)
+                    {
+                        DeleteDir(PdbStrppedDir.FullName, true);
+                    }
+                    else if (PdbStrppedDir.Name is "stripped" && PdbStrppedDir.GetFiles().ToList().FindAll(a => a.Extension == ".pdb").Count == 1)
+                    {
+                        var destFileName = Path.Combine(PdbStrppedDir.Parent.FullName, Path.GetFileName(sourceFileName));
+
+                        File.Move(sourceFileName, destFileName);
+
+                        DeleteDir(PdbStrppedDir.FullName, true);
+                    }
+                    else if (PdbStrppedDir.Name is "stripped" && PdbStrppedDir.GetFiles().ToList().FindAll(a => a.Extension == ".pdb").Count > 1)
+                    {
+                        Debugger.Break();
+                        throw new InvalidOperationException("please take a look at pdb folders ");
+                    }
+                }
+
+            }
+        }
+    }
+}
+
 public static void RecustFileAndFolder(string folderpath)
 {
     if (IsNullOrWhiteSpace(folderpath) && !Directory.Exists(folderpath))
