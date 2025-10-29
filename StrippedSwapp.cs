@@ -1,3 +1,94 @@
+ public static void StrippedRemoval(string folderpath)
+ {
+     if (IsNullOrWhiteSpace(folderpath) && !Directory.Exists(folderpath))
+     {
+         Debugger.Break();
+         throw new ArgumentNullException(nameof(folderpath));
+         var folderNewPath = "C:\\VSLatestSymbols";
+     }
+     //C:\\SymbolFiles\\WindowsCodecs.pdb\\EAE1253DBDF1015497E086409850476A1
+     var TotalFolders = Directory.GetDirectories(folderpath, "*", System.IO.SearchOption.AllDirectories);
+     //F:\\SymbolCache\\srvcli.pdb\\9B2D4D1514F7A3653BCA5EAFB4C3C4351\\stripped
+     //string[] folders = System.IO.Directory.GetDirectories(@"F:\SymbolCache\", "*", System.IO.SearchOption.AllDirectories);
+
+     var PdfFileList = new List<string>();
+
+     foreach (var folder in TotalFolders)
+     {
+         var TotalFiles = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
+         if (TotalFiles.Length == 0) continue;
+
+         //var Folderinfo = new DirectoryInfo(folder);
+
+         foreach (var file in TotalFiles)
+         {
+             var fileinfo = new FileInfo(file);
+             if (fileinfo.Exists)
+             {
+                 var FileExtension = fileinfo.Extension;
+                 if (FileExtension == ".pdb")
+                 {
+                     PdfFileList.Add(file);
+                 }
+             }
+         }
+     }
+
+     var AfterRemoveFolderList = Directory.GetDirectories(folderpath, "*", System.IO.SearchOption.AllDirectories);
+
+
+     foreach (var folder in AfterRemoveFolderList)
+     {
+         if (!Directory.Exists(folder)) continue;
+         var TotalFiles = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
+
+         if (TotalFiles.Length == 0)
+         {
+             Directory.Delete(folder, true);
+             Console.WriteLine("deleted {0}", folder); // Success
+         }
+     }
+
+     for (int i = 0; i < PdfFileList.Count; i++)
+     {
+         
+         var pdffile = PdfFileList[i];
+             
+         if (!File.Exists(pdffile)) continue;
+
+         if (Path.GetExtension(pdffile) != ".pdb") continue;
+
+         var dirinfo = new DirectoryInfo(pdffile);
+
+         //var destfilename = Path.Combine(new DirectoryInfo(dirinfo.Parent.FullName).Parent.FullName, Path.GetFileName(pdffile));
+
+         //var parentdir = dirinfo.Parent.FullName;
+         //var dirname = dirinfo.Name;
+         var strippedFolder = Path.Combine(dirinfo.Parent.FullName, "stripped");
+
+         if (dirinfo.Parent.Name == "stripped")
+         {
+             File.Move(pdffile, dirinfo.FullName);
+             Directory.Delete(dirinfo.Parent.FullName, true);
+             Console.WriteLine("deleted {0}", dirinfo.Parent.FullName); // Success
+         }
+         else if (Directory.Exists(strippedFolder))
+         {
+             var strippedFolderFiles = Directory.GetFiles(strippedFolder, "*", SearchOption.AllDirectories);
+             var strippedPdbExist = strippedFolderFiles.ToList().FindAll(a => Path.GetExtension(a) == ".pdb");
+             if (strippedPdbExist.Count == 0)
+             {
+                 Directory.Delete(strippedFolder, true);
+                 Console.WriteLine("deleted {0}", strippedFolder); // Success
+             }
+             
+         }
+
+
+     }
+ }
+
+
 public static void RecustFileAndFolderThree(string folderpath)
 {
     if (IsNullOrWhiteSpace(folderpath) && !Directory.Exists(folderpath))
